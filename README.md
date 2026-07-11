@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Next CRUD with Prisma
 
-## Getting Started
+โปรเจกต์นี้เป็นตัวอย่าง CRUD ด้วย Next.js + Prisma + PostgreSQL
 
-First, run the development server:
+## 1) ความแตกต่างระหว่างใช้ Prisma กับไม่ใช้ Prisma
 
+### ใช้ Prisma
+- เขียน query ผ่าน `PrismaClient` เช่น `prisma.student.findMany()`
+- ได้ type safety ช่วยลดการพิมพ์ชื่อ field ผิด
+- โค้ดอ่านง่ายกว่า โดยเฉพาะงาน CRUD
+- รองรับการจัดการ schema และ migration ได้เป็นระบบ
+- ตอนใช้ Prisma 7 ต้องเชื่อมฐานข้อมูลผ่าน `prisma.config.ts` และ adapter เช่น `@prisma/adapter-pg`
+
+### ไม่ใช้ Prisma
+- เขียน SQL เองผ่าน driver เช่น `pg`
+- ควบคุม query ได้ละเอียดกว่า แต่โค้ดจะยาวและดูแลยากกว่า
+- ต้องจัดการ type และ mapping เอง
+- เหมาะกับงานที่ต้องการ SQL เฉพาะทางหรือ query ซับซ้อนมากๆ
+
+## 2) ขั้นตอนการตั้งค่าโปรเจกต์นี้
+
+### 1. ติดตั้ง dependencies ของโปรเจกต์
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+	npm install
+```
+    
+### 2. ติดตั้ง Prisma
+```bash
+    npm install prisma --save-dev
+    npm install @prisma/client
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Init Prisma
+```bash
+    npx prisma init
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+คำสั่งนี้จะสร้าง:
+- โฟลเดอร์ prisma/ พร้อมไฟล์ schema.prisma
+- ไฟล์ .env (สำหรับเก็บ connection string)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. ตั้งค่า `DATABASE_URL` ในไฟล์ `.env`
+```env
+	DATABASE_URL="postgresql://user:password@localhost:5432/postgres?schema=demo"
+```
 
-## Learn More
+ตั้งให้ตรงกับของจริง
 
-To learn more about Next.js, take a look at the following resources:
+### 5. ติดตั้ง Prisma adapter สำหรับ PostgreSQL
+```bash
+	npm install @prisma/adapter-pg pg
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 6. ดึง schema จากฐานข้อมูลเข้ามาใน Prisma
+```bash
+	npx prisma db pull
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+เมื่อ run คำสั่งนี้จะได้ไฟล์ `prisma/schema.prisma` ที่ดึงข้อมูล table เก่ามาแล้ว
 
-## Deploy on Vercel
+### 7. สร้าง Prisma Client
+```bash
+    npx prisma generate
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 8. ตรวจสอบโปรเจกต์ด้วย build
+```bash
+    npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## หมายเหตุ
+
+- ไฟล์ `prisma/schema.prisma` ใช้สำหรับเก็บ model ที่ introspect มา
+- ไฟล์ `prisma.config.ts` ใช้โหลด `.env` และส่ง connection string ให้ Prisma
+- หากใช้ Prisma 7 ห้ามใส่ `url` ใน `schema.prisma`
